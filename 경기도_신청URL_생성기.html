@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>경기도 극저신용대출 2.0 — 신청 URL 생성기</title>
+<style>
+:root {
+  --primary: #1B4F8A; --primary-light: #2A6DB8; --primary-pale: #EBF2FA;
+  --success: #2E7D4F; --success-light: #E8F5EE;
+  --accent: #E8622A;
+  --gray-50: #F8F9FA; --gray-100: #F0F2F5; --gray-200: #E2E6EA;
+  --gray-300: #CDD3DA; --gray-500: #5C6E85; --gray-700: #2D3E52;
+  --text: #1A2A3A; --text-muted: #5C6E85; --border: #D8E2ED;
+  --radius: 10px; --radius-sm: 6px;
+  --shadow: 0 4px 16px rgba(0,0,0,.08);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif; background: #F0F4F9; color: var(--text); font-size: 15px; line-height: 1.6; }
+
+header {
+  background: #fff; border-bottom: 1px solid var(--border);
+  padding: 0 24px; position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.header-inner { max-width: 960px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 60px; }
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark { width: 34px; height: 34px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #fff; font-weight: 700; }
+.logo-text { font-size: 15px; font-weight: 700; color: var(--primary); }
+.logo-sub { font-size: 11px; color: var(--text-muted); }
+.header-badge { background: #E8F5E9; color: #2E7D32; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; border: 1px solid #A5D6A7; }
+
+.main { max-width: 960px; margin: 0 auto; padding: 28px 24px 80px; }
+
+.card { background: #fff; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 20px; }
+.card-header { padding: 18px 24px 14px; border-bottom: 1px solid var(--gray-100); }
+.card-title { font-size: 16px; font-weight: 700; color: var(--gray-700); display: flex; align-items: center; gap: 8px; }
+.card-desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+.card-body { padding: 20px 24px; }
+
+.form-label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 7px; }
+.form-input, .form-textarea, .form-select {
+  width: 100%; padding: 10px 14px; border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); font-size: 14px; font-family: inherit;
+  color: var(--text); background: #fff; outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.form-input:focus, .form-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(27,79,138,.1); }
+.form-textarea { resize: vertical; min-height: 60px; line-height: 1.6; font-size: 12px; font-family: 'Courier New', monospace; }
+.form-row { margin-bottom: 16px; }
+
+.btn {
+  padding: 11px 20px; border-radius: var(--radius-sm); font-size: 14px;
+  font-weight: 600; cursor: pointer; border: none; font-family: inherit;
+  transition: all .2s; display: inline-flex; align-items: center; gap: 7px;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-light); }
+.btn-success { background: #2E7D4F; color: #fff; }
+.btn-success:hover { background: #246040; }
+.btn-secondary { background: #fff; color: var(--primary); border: 1.5px solid var(--primary); }
+.btn-secondary:hover { background: var(--primary-pale); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+.step-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; background: var(--primary); color: #fff;
+  border-radius: 50%; font-size: 12px; font-weight: 700; flex-shrink: 0;
+}
+
+/* 매핑 테이블 */
+.map-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.map-table th { background: var(--gray-50); color: var(--text-muted); font-size: 11px; font-weight: 600; padding: 8px 10px; border: 1px solid var(--border); text-align: left; }
+.map-table td { padding: 7px 10px; border: 1px solid var(--border); vertical-align: top; }
+.map-table td code { font-size: 11px; color: var(--primary); background: var(--primary-pale); padding: 1px 5px; border-radius: 3px; }
+.col-gg { width: 200px; color: #2E7D32; font-weight: 500; }
+.col-param { width: 80px; }
+
+/* 결과 영역 */
+.result-area { display: none; }
+.result-area.show { display: block; }
+.url-item {
+  background: var(--gray-50); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 14px;
+  margin-bottom: 8px; font-size: 12px;
+}
+.url-item .name { font-weight: 600; color: var(--gray-700); margin-bottom: 4px; font-size: 13px; }
+.url-item .url-text { word-break: break-all; color: var(--primary); font-family: 'Courier New', monospace; font-size: 11px; cursor: text; user-select: all; }
+.url-item .copy-btn { font-size: 11px; margin-top: 6px; }
+
+.summary-box { background: var(--success-light); border: 1px solid #A8D5B8; border-radius: var(--radius-sm); padding: 14px 18px; margin-bottom: 16px; font-size: 13px; color: var(--success); }
+
+.notice { background: #FFF8E1; border: 1px solid #FFD54F; border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13px; color: #7B5800; margin-bottom: 16px; }
+.notice strong { font-weight: 700; }
+
+.col-headers { display: grid; grid-template-columns: 2fr 3fr; gap: 8px; font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; padding: 0 4px; }
+
+#csv-output { background: #1A2A3A; color: #7FE0A8; border-radius: var(--radius-sm); padding: 14px 16px; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.8; max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
+
+.tab-bar { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid var(--gray-200); padding-bottom: 0; }
+.tab-btn { padding: 8px 16px; border: none; background: none; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; font-family: inherit; }
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-mark">함</div>
+      <div><div class="logo-text">함께만드는세상</div><div class="logo-sub">사회연대은행 — 내부 운영 도구</div></div>
+    </div>
+    <span class="header-badge">URL 생성기 v1</span>
+  </div>
+</header>
+
+<main class="main">
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">⚙️ 경기도 극저신용대출 2.0 — 신청 URL 자동 생성기</div>
+      <div class="card-desc">경기도 엑셀 데이터를 붙여넣으면 신청자별 개인 URL을 자동으로 생성합니다. 생성된 URL을 문자로 발송하면 신청자가 링크 접속 시 경기도 제출값이 자동으로 채워진 신청서를 볼 수 있습니다.</div>
+    </div>
+    <div class="card-body">
+      <div class="notice">
+        <strong>사용 전 확인 사항</strong><br>
+        아래 파라미터 기준으로 경기도 엑셀의 열을 매핑합니다. 경기도 엑셀의 헤더 행(1행)이 있는 상태로 붙여넣어 주세요.
+      </div>
+
+      <table class="map-table" style="margin-bottom:20px">
+        <thead>
+          <tr><th>URL 파라미터</th><th>경기도 엑셀 컬럼</th><th>경기도 열 번호</th><th>예시 값</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>appno</code></td><td class="col-gg">신청서번호</td><td>B열 (2번)</td><td>1389850</td></tr>
+          <tr><td><code>name</code></td><td class="col-gg">성명</td><td>K열 (11번)</td><td>홍길동</td></tr>
+          <tr><td><code>res</code></td><td class="col-gg">주거 형태</td><td>Z열 (26번)</td><td>월세</td></tr>
+          <tr><td><code>hh</code></td><td class="col-gg">가구원 수</td><td>Y열 (25번)</td><td>2인</td></tr>
+          <tr><td><code>debt</code></td><td class="col-gg">본인 부채현황</td><td>AH열 (34번)</td><td>부채 없음 또는 500만원</td></tr>
+          <tr><td><code>income</code></td><td class="col-gg">본인 월 소득 수준</td><td>AF열 (32번)</td><td>100만 원~200만 원 미만</td></tr>
+          <tr><td><code>hifi</code></td><td class="col-gg">고금리/불법사금융 이용 경험</td><td>AO열 (41번)</td><td>없음</td></tr>
+          <tr><td><code>dadj</code></td><td class="col-gg">채무조정 제도 이용 경험</td><td>AI열 (35번)</td><td>해당없음</td></tr>
+          <tr><td><code>dadjtype</code></td><td class="col-gg">제도 유형</td><td>AJ열 (36번)</td><td>개인회생</td></tr>
+          <tr><td><code>lamt</code></td><td class="col-gg">신청금액</td><td>U열 (21번)</td><td>200만원</td></tr>
+          <tr><td><code>lpurp</code></td><td class="col-gg">대출용도</td><td>V열 (22번)</td><td>생활비 충당</td></tr>
+          <tr><td><code>exp</code></td><td class="col-gg">가구 월평균 지출</td><td>AB열 (28번)</td><td>100만 원 미만</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="step-badge">1</span> 신청서 기본 URL 설정</div>
+    </div>
+    <div class="card-body">
+      <div class="form-row">
+        <label class="form-label">신청서 URL (배포 후 실제 주소로 변경)</label>
+        <input class="form-input" type="text" id="base-url" value="https://apply.hamkke.org/gg2" placeholder="https://apply.hamkke.org/gg2">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="step-badge">2</span> 데이터 입력 방식 선택</div>
+    </div>
+    <div class="card-body">
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('tab-paste')">엑셀 붙여넣기</button>
+        <button class="tab-btn" onclick="switchTab('tab-manual')">단건 직접 입력</button>
+      </div>
+
+      <!-- 탭 1: 엑셀 붙여넣기 -->
+      <div class="tab-panel active" id="tab-paste">
+        <div class="notice" style="margin-bottom:12px">
+          경기도 엑셀 파일에서 헤더 포함 전체 데이터를 복사(Ctrl+A → Ctrl+C)한 후 아래 붙여넣기 하세요.
+          <strong>탭으로 구분된 형식</strong>(엑셀에서 직접 복사)이어야 합니다.
+        </div>
+        <div class="form-row">
+          <label class="form-label">엑셀 데이터 붙여넣기 (헤더 포함)</label>
+          <textarea class="form-textarea" id="excel-paste" rows="8" placeholder="경기도 엑셀에서 전체 선택 후 붙여넣기 (Ctrl+V)&#10;헤더행 포함 탭구분 형식으로 붙여넣어 주세요."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="parseExcel()">🔗 URL 생성</button>
+      </div>
+
+      <!-- 탭 2: 단건 직접 입력 -->
+      <div class="tab-panel" id="tab-manual">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="form-row"><label class="form-label">신청서번호 *</label><input class="form-input" type="text" id="m-appno" placeholder="1389850"></div>
+          <div class="form-row"><label class="form-label">성명</label><input class="form-input" type="text" id="m-name" placeholder="홍길동"></div>
+          <div class="form-row"><label class="form-label">거주 형태 (26번)</label><input class="form-input" type="text" id="m-res" placeholder="월세"></div>
+          <div class="form-row"><label class="form-label">가구원 수 (25번)</label><input class="form-input" type="text" id="m-hh" placeholder="2인"></div>
+          <div class="form-row"><label class="form-label">부채현황 (34번)</label><input class="form-input" type="text" id="m-debt" placeholder="500 (만원 숫자만 또는 '부채 없음')"></div>
+          <div class="form-row"><label class="form-label">소득 수준 (32번)</label><input class="form-input" type="text" id="m-income" placeholder="100만 원~200만 원 미만"></div>
+          <div class="form-row"><label class="form-label">고금리 이용 경험 (41번)</label><input class="form-input" type="text" id="m-hifi" placeholder="없음"></div>
+          <div class="form-row"><label class="form-label">채무조정 여부 (35번)</label><input class="form-input" type="text" id="m-dadj" placeholder="해당없음"></div>
+          <div class="form-row"><label class="form-label">채무조정 유형 (36번)</label><input class="form-input" type="text" id="m-dadjtype" placeholder="개인회생 (없으면 공란)"></div>
+          <div class="form-row"><label class="form-label">신청금액 (21번)</label><input class="form-input" type="text" id="m-lamt" placeholder="200만원"></div>
+          <div class="form-row"><label class="form-label">대출용도 (22번)</label><input class="form-input" type="text" id="m-lpurp" placeholder="생활비 충당"></div>
+          <div class="form-row"><label class="form-label">가구 월평균 지출 (28번)</label><input class="form-input" type="text" id="m-exp" placeholder="100만 원 미만"></div>
+        </div>
+        <button class="btn btn-primary" onclick="generateSingle()">🔗 URL 생성</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 결과 영역 -->
+  <div class="result-area" id="result-area">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="step-badge">3</span> 생성된 URL 목록</div>
+        <div class="card-desc" id="result-summary"></div>
+      </div>
+      <div class="card-body">
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <button class="btn btn-success" onclick="copyAllCSV()">📋 전체 복사 (이름+URL, 문자발송용)</button>
+          <button class="btn btn-secondary" onclick="downloadCSV()">⬇ CSV 다운로드</button>
+        </div>
+        <div id="result-list"></div>
+        <div style="margin-top:16px">
+          <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:8px">문자 발송용 미리보기 (탭 구분: 이름 | URL)</div>
+          <div id="csv-output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// 탭 전환
+function switchTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// 경기도 컬럼 인덱스 (0-based, 엑셀 A=0)
+const COL = {
+  appno:    1,   // B: 신청서번호
+  name:     10,  // K: 성명
+  res:      25,  // Z: 주거 형태
+  hh:       24,  // Y: 가구원 수
+  debt:     33,  // AH: 본인 부채현황
+  income:   31,  // AF: 본인 월 소득 수준
+  hifi:     40,  // AO: 고금리 이용 경험
+  dadj:     34,  // AI: 채무조정 이용 경험
+  dadjtype: 35,  // AJ: 채무조정 유형
+  lamt:     20,  // U: 신청금액
+  lpurp:    21,  // V: 대출용도
+  exp:      27,  // AB: 가구 월평균 지출
+};
+
+function buildURL(base, data) {
+  const p = new URLSearchParams();
+  Object.entries(data).forEach(([k, v]) => {
+    if (v && v.toString().trim()) p.set(k, v.toString().trim());
+  });
+  return base + '?' + p.toString();
+}
+
+function parseExcel() {
+  const raw = document.getElementById('excel-paste').value.trim();
+  if (!raw) { alert('데이터를 붙여넣어 주세요.'); return; }
+  const lines = raw.split('\n').filter(l => l.trim());
+  if (lines.length < 2) { alert('헤더 포함 2행 이상이어야 합니다.'); return; }
+  const base = document.getElementById('base-url').value.trim();
+  const results = [];
+  // 첫 행은 헤더 → skip
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split('\t');
+    const data = {
+      appno:    cols[COL.appno]    || '',
+      name:     cols[COL.name]     || '',
+      res:      cols[COL.res]      || '',
+      hh:       cols[COL.hh]       || '',
+      debt:     cols[COL.debt]     || '',
+      income:   cols[COL.income]   || '',
+      hifi:     cols[COL.hifi]     || '',
+      dadj:     cols[COL.dadj]     || '',
+      dadjtype: cols[COL.dadjtype] || '',
+      lamt:     cols[COL.lamt]     || '',
+      lpurp:    cols[COL.lpurp]    || '',
+      exp:      cols[COL.exp]      || '',
+    };
+    if (!data.appno) continue;
+    results.push({ name: data.name || '(이름 없음)', appno: data.appno, url: buildURL(base, data) });
+  }
+  renderResults(results);
+}
+
+function generateSingle() {
+  const base = document.getElementById('base-url').value.trim();
+  const data = {
+    appno:    document.getElementById('m-appno').value,
+    name:     document.getElementById('m-name').value,
+    res:      document.getElementById('m-res').value,
+    hh:       document.getElementById('m-hh').value,
+    debt:     document.getElementById('m-debt').value,
+    income:   document.getElementById('m-income').value,
+    hifi:     document.getElementById('m-hifi').value,
+    dadj:     document.getElementById('m-dadj').value,
+    dadjtype: document.getElementById('m-dadjtype').value,
+    lamt:     document.getElementById('m-lamt').value,
+    lpurp:    document.getElementById('m-lpurp').value,
+    exp:      document.getElementById('m-exp').value,
+  };
+  if (!data.appno) { alert('신청서번호는 필수입니다.'); return; }
+  renderResults([{ name: data.name || '(이름 없음)', appno: data.appno, url: buildURL(base, data) }]);
+}
+
+function renderResults(results) {
+  if (!results.length) { alert('생성된 URL이 없습니다. 데이터를 확인해 주세요.'); return; }
+  document.getElementById('result-summary').textContent = `총 ${results.length}명의 URL이 생성되었습니다.`;
+  const list = document.getElementById('result-list');
+  list.innerHTML = results.map(r => `
+    <div class="url-item">
+      <div class="name">${r.name} <span style="font-size:11px;color:var(--text-muted);font-weight:400">(신청서번호: ${r.appno})</span></div>
+      <div class="url-text" id="url-${r.appno}">${r.url}</div>
+      <button class="btn btn-secondary btn-sm copy-btn" onclick="copyOne('${r.appno}')">복사</button>
+      <a href="${r.url}" target="_blank" style="font-size:11px;margin-left:8px;color:var(--primary)">미리보기 →</a>
+    </div>`).join('');
+
+  // CSV 출력
+  const csv = results.map(r => `${r.name}\t${r.url}`).join('\n');
+  document.getElementById('csv-output').textContent = csv;
+  window._csvData = csv;
+  window._csvResults = results;
+
+  document.getElementById('result-area').classList.add('show');
+  document.getElementById('result-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function copyOne(appno) {
+  const el = document.getElementById('url-' + appno);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    const btn = el.nextElementSibling;
+    btn.textContent = '✅ 복사됨';
+    setTimeout(() => btn.textContent = '복사', 1500);
+  });
+}
+
+function copyAllCSV() {
+  if (!window._csvData) return;
+  navigator.clipboard.writeText(window._csvData).then(() => {
+    const btn = event.target;
+    btn.textContent = '✅ 전체 복사됨';
+    setTimeout(() => btn.textContent = '📋 전체 복사 (이름+URL, 문자발송용)', 2000);
+  });
+}
+
+function downloadCSV() {
+  if (!window._csvResults) return;
+  const rows = ['신청서번호,이름,URL'];
+  window._csvResults.forEach(r => rows.push(`${r.appno},${r.name},"${r.url}"`));
+  const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '경기도_신청URL_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
